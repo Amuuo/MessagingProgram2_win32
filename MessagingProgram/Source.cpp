@@ -18,7 +18,8 @@ enum {USERNAMEDIALOG,
       USERNAMEBUTTON, 
       MESSAGEBOX, 
       MESSAGEDIALOG,
-      MESSAGEBUTTON};
+      MESSAGEBUTTON,
+      USERNAMETITLE};
 
 
 
@@ -40,6 +41,7 @@ LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK messageTextBoxProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK messageProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK usernameProc(HWND, UINT, WPARAM, LPARAM);
+LRESULT CALLBACK messageInputBoxProc(HWND, UINT, WPARAM, LPARAM);
 
 
 
@@ -87,7 +89,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	HWND hwnd = CreateWindow(
 		            szWindowClass,
 		            szTitle,
-		            WS_OVERLAPPEDWINDOW | WS_VSCROLL,
+		            WS_SYSMENU | WS_CAPTION,
 		            CW_USEDEFAULT, CW_USEDEFAULT,
 		            500, 500,
 		            NULL,
@@ -97,7 +99,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     
 
 
-	/*if (!hwnd) {
+	if (!hwnd) {
 		MessageBox(
 			NULL,
 			_T("Call to CreateWindow failed!"),
@@ -105,7 +107,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 			SW_SHOW);
 
 		return 1;
-	} */
+	}
 
 
   //ShowWindow(hwnd, SW_SHOWDEFAULT);
@@ -194,7 +196,10 @@ LRESULT CALLBACK messageProc(HWND hwnd, UINT Msg,
   static RECT   clientRect;
   static HRGN   bgRgn;
   static HBRUSH hBrush;
-
+  static string tmp, tmp2;
+  
+  
+  
   switch (Msg) {
     
     case WM_CREATE:
@@ -203,18 +208,19 @@ LRESULT CALLBACK messageProc(HWND hwnd, UINT Msg,
       ReleaseDC(hwnd, hdc);
       break;
 
-    case WM_COMMAND:
-      
-      switch (LOWORD(wParam)) {
-        case MESSAGEBUTTON:
+    case WM_COMMAND:      
+      if(MESSAGEBUTTON == LOWORD(wParam)){
           GetDlgItemText(hwnd, MESSAGEDIALOG, messageBuffer, 24);
-          string tmp = string{username + string{": "} + messageBuffer + '\n' + '\0'}.c_str();
+          tmp = string{username + string{": "} + 
+            messageBuffer + '\n' + '\0'}.c_str();
           strncat_s(screenBuffer, tmp.c_str(), tmp.size());
-          SetDlgItemText(GetWindow(hwnd,MESSAGEDIALOG), MESSAGEDIALOG, "");
           InvalidateRect(hwnd,&clientRect,true);
-          break;
-      }
-      break;
+      } break;        
+
+    case WM_KEYDOWN:      
+      if (LOWORD(wParam) == VK_RETURN) {
+          InvalidateRect(hwnd,&clientRect,true);
+      } break;
 
     case WM_PAINT:
       hdc = BeginPaint(hwnd, &ps);
@@ -224,7 +230,7 @@ LRESULT CALLBACK messageProc(HWND hwnd, UINT Msg,
       FillRgn(hdc, bgRgn, hBrush);
       EndPaint(hwnd, &ps);
       break;
-        
+   
   }
   return DefWindowProcW(hwnd, Msg, wParam, lParam);
 }
@@ -242,7 +248,8 @@ LRESULT CALLBACK usernameProc(HWND hwnd, UINT Msg,
   
   switch (Msg) {
     case WM_CREATE:
-      hdc = GetDC(hwnd);
+      hdc = CreateDC(TEXT("DISPLAY"), NULL, NULL, NULL);
+      DrawText(hdc, username, strlen(username), NULL, NULL);
       InvalidateRect(hwnd, &clientRect, false);
       ReleaseDC(hwnd, hdc);
       break;
@@ -279,6 +286,37 @@ LRESULT CALLBACK usernameProc(HWND hwnd, UINT Msg,
   return DefWindowProcA(hwnd,Msg,wParam,lParam);
 }
 
+LRESULT CALLBACK messageInputBoxProc(HWND hwnd, UINT Msg, 
+                                     WPARAM wParam, LPARAM lParam) {
+  
+  PAINTSTRUCT    ps;
+  static HBRUSH  hBrush;
+  static HRGN    bgRgn;
+  static RECT    clientRect;
+  static HDC     hdc;
+
+  switch (Msg) {
+    case WM_CREATE:      
+      break;
+    
+    case WM_KEYDOWN:
+      if (LOWORD(wParam) == VK_RETURN) {
+        SendMessage(hwnd, WM_PAINT, wParam, lParam);
+      }
+      break;
+
+    case WM_PAINT:
+      hdc = BeginPaint(hwnd, &ps);
+      GetClientRect(hwnd, &clientRect);
+      bgRgn = CreateRectRgnIndirect(&clientRect);
+      hBrush = CreateSolidBrush(RGB(90, 145, 88));
+      FillRgn(hdc, bgRgn, hBrush);
+      EndPaint(hwnd, &ps);
+      break;
+  }
+  return DefWindowProcW(hwnd,Msg,wParam,lParam);
+}
+
 void getUsername(HWND hwnd) {
   
   WNDCLASSW usernameWin = {0};  
@@ -293,30 +331,35 @@ void getUsername(HWND hwnd) {
   RegisterClassW(&usernameWin);
 
   HWND displayWin =     
-      CreateWindowExW(
-        WS_EX_APPWINDOW | WS_EX_DLGMODALFRAME, 
-        L"usernameClass", L"Get Username",
-        WS_VISIBLE | WS_CAPTION,
-        400, 400, 400, 388, 
+      CreateWindowW(
+        L"usernameClass", _T(L"Get Username"),
+        WS_VISIBLE | WS_CAPTION | WS_SYSMENU,
+        200, 200, 400, 150, 
         hwnd, NULL, NULL, NULL);  
 
+  CreateWindowW(L"EDIT", L" ENTER USERNAME",
+                WS_VISIBLE | WS_CHILD | ES_READONLY, 
+                120, 15, 140, 20, displayWin,
+                (HMENU)USERNAMETITLE, NULL, NULL);
+
   CreateWindowW( 
-        L"EDIT", L"Enter Username",
+        L"EDIT", NULL,
         WS_VISIBLE | WS_CHILD | ES_WANTRETURN,
-        20, 200, 325, 20, displayWin,
+        20, 40, 340, 20, displayWin,
         (HMENU)USERNAMEDIALOG, NULL, NULL);            
 
   CreateWindowW(
         L"Button", L"Enter",
         WS_VISIBLE | WS_CHILD,
-        20, 235, 50, 20, displayWin,
+        140, 75, 100, 20, displayWin,
         (HMENU)USERNAMEBUTTON, NULL, NULL);
 }
 
 void setupMessaging(HWND hwnd) {
 
-  WNDCLASSW messageClass = {0};
-  WNDCLASSW textBoxClass = {0};
+  WNDCLASSW messageClass    = {0};
+  WNDCLASSW textBoxClass    = {0};
+  WNDCLASSW messageInputBox = {0};
 
   messageClass .lpfnWndProc   = messageProc;
   messageClass .hInstance     = hInst;
@@ -334,37 +377,42 @@ void setupMessaging(HWND hwnd) {
   textBoxClass.lpszClassName  = L"textBoxClass";
   RegisterClassW(&textBoxClass);
   
+  textBoxClass.lpfnWndProc    = messageInputBoxProc;		
+  textBoxClass.hInstance      = hInst;
+  textBoxClass.hCursor        = LoadCursor(NULL, IDC_ARROW);
+  textBoxClass.hbrBackground  = (HBRUSH)(GRAY_BRUSH);
+  textBoxClass.lpszMenuName   = NULL;
+  textBoxClass.style          = CS_HREDRAW | CS_VREDRAW;
+  textBoxClass.lpszClassName  = L"inputMessageInputClass";
+  RegisterClassW(&textBoxClass);
 
 
-  int margin = 22;
+  int margin = 12;
 
   HWND messageWin =     
-      CreateWindowExW(
-        WS_EX_APPWINDOW,
+      CreateWindowW(
         L"messageClass", L"Messaging",
-        WS_VISIBLE | WS_CAPTION,
-        400, 400, 400, 388, hwnd,
+        WS_VISIBLE | WS_BORDER,
+        400, 400, 408, 544, hwnd,
         NULL, NULL, NULL); 
-  
-  CreateWindowW(
-        L"EDIT", L"TYPE HERE",
-        WS_VISIBLE | WS_CHILD | ES_WANTRETURN,
-        margin, 225 + (margin + 10), 350, 40, 
-        messageWin, (HMENU)MESSAGEDIALOG, NULL, NULL);  
 
-  HWND textBoxWin = 
-    CreateWindowExW(
-        WS_EX_APPWINDOW | WS_EX_STATICEDGE | WS_EX_WINDOWEDGE,
-        L"textBoxClass", L"EDIT",
-        WS_VISIBLE | WS_CHILD | WS_VSCROLL | ES_READONLY,
-        margin, margin, 350, 225, messageWin,
+  CreateWindowW(
+        L"EDIT", L"inputBox",
+        WS_VISIBLE | WS_CHILD,
+        margin, 376 + (margin + 11), 293, 93, 
+        messageWin, (HMENU)MESSAGEDIALOG, NULL, NULL);  
+ 
+  CreateWindowW(
+        L"textBoxClass", L"messageBox",
+        WS_VISIBLE | WS_CHILD,
+        margin, margin, 367, 375, messageWin,
         (HMENU)MESSAGEBOX, NULL, NULL);  
         
   CreateWindowW(
         L"Button", L"Send",
         WS_VISIBLE | WS_CHILD,
-        margin, 265 + (margin + 20),
-        100, 30, messageWin,
+        307, 376 + (margin + 11),
+        73, 94, messageWin,
         (HMENU)MESSAGEBUTTON, NULL, NULL);  
 }
 
