@@ -137,10 +137,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Msg,
     case WM_DESTROY:
       PostQuitMessage(0);
       return 0;			
-    
-    default:
-      return DefWindowProc(hwnd, Msg, wParam, lParam);        
+        
   }
+  return DefWindowProc(hwnd, Msg, wParam, lParam);        
   
 }
 
@@ -161,7 +160,7 @@ LRESULT CALLBACK messageTextBoxProc(HWND hwnd, UINT Msg,
     
     case WM_CREATE:
       InvalidateRect(hwnd, &clientRect, false);
-      return 0;
+      break;;
     
     case WM_PAINT:
       hdc = BeginPaint(hwnd, &ps);
@@ -174,15 +173,14 @@ LRESULT CALLBACK messageTextBoxProc(HWND hwnd, UINT Msg,
       DrawText(hdc, screenBuffer, strlen(screenBuffer), &clientRect, 0);
       EndPaint(hwnd, &ps);
       ++numLines;
-      return 0;      
+      break;
 
     case WM_CLOSE:
       DestroyWindow(hwnd);
-      return 0;
-
-    default:
-      return DefWindowProcW(hwnd, Msg, wParam, lParam);
+      break;
+    
   }
+  return DefWindowProcW(hwnd, Msg, wParam, lParam);
 
 }
 
@@ -203,7 +201,7 @@ LRESULT CALLBACK messageProc(HWND hwnd, UINT Msg,
       hdc = GetDC(hwnd);
       InvalidateRect(hwnd,NULL,false);
       ReleaseDC(hwnd, hdc);
-      return 0;
+      break;
 
     case WM_COMMAND:
       
@@ -211,12 +209,12 @@ LRESULT CALLBACK messageProc(HWND hwnd, UINT Msg,
         case MESSAGEBUTTON:
           GetDlgItemText(hwnd, MESSAGEDIALOG, messageBuffer, 24);
           const char* tmp = string{username + string{": "} + messageBuffer + '\n'}.c_str();
-          strncat(screenBuffer, tmp, strlen(tmp));
+          //strncat(screenBuffer, tmp, strlen(tmp));
           SetDlgItemText(GetWindow(hwnd,MESSAGEDIALOG), MESSAGEDIALOG, "");
           InvalidateRect(hwnd,&clientRect,true);
           break;
       }
-      return 0;
+      break;
 
     case WM_PAINT:
       hdc = BeginPaint(hwnd, &ps);
@@ -225,11 +223,10 @@ LRESULT CALLBACK messageProc(HWND hwnd, UINT Msg,
       hBrush = CreateSolidBrush(RGB(45, 23, 88));
       FillRgn(hdc, bgRgn, hBrush);
       EndPaint(hwnd, &ps);
-      return 0;
-    
-    default: 
-      return DefWindowProcW(hwnd, Msg, wParam, lParam);
+      break;
+        
   }
+  return DefWindowProcW(hwnd, Msg, wParam, lParam);
 }
 
 
@@ -248,7 +245,7 @@ LRESULT CALLBACK usernameProc(HWND hwnd, UINT Msg,
       hdc = GetDC(hwnd);
       InvalidateRect(hwnd, &clientRect, false);
       ReleaseDC(hwnd, hdc);
-      return 0;
+      break;
 
     case WM_PAINT:
       hdc = BeginPaint(hwnd, &ps);
@@ -257,10 +254,11 @@ LRESULT CALLBACK usernameProc(HWND hwnd, UINT Msg,
       hBrush = CreateSolidBrush(RGB(45, 23, 88));
       FillRgn(hdc, bgRgn, hBrush);
       EndPaint(hwnd, &ps);
+      break;
       
     case WM_CLOSE:
       DestroyWindow(hwnd);      
-      return 0;
+      break;
 
     case WM_COMMAND:
 
@@ -275,16 +273,15 @@ LRESULT CALLBACK usernameProc(HWND hwnd, UINT Msg,
         default: 
           break;
       }  
-      return 0;
-    
-    default:
-      DefWindowProcA(hwnd,Msg,wParam,lParam);
+      break;
+        
   }
+  return DefWindowProcA(hwnd,Msg,wParam,lParam);
 }
 
 void getUsername(HWND hwnd) {
   
-  WNDCLASSEX usernameWin = {0};
+  WNDCLASSW usernameWin = {0};
 
   // SET UP WINDOW CLASS  
 	usernameWin.lpfnWndProc    = usernameProc;		
@@ -293,9 +290,9 @@ void getUsername(HWND hwnd) {
 	usernameWin.hbrBackground  = (HBRUSH)(GRAY_BRUSH);
 	usernameWin.lpszMenuName   = NULL;
   usernameWin.style          = CS_HREDRAW | CS_VREDRAW;
-	usernameWin.lpszClassName  = "usernameClass";
+	usernameWin.lpszClassName  = L"usernameClass";
 
-  RegisterClassEx(&usernameWin);
+  RegisterClassW(&usernameWin);
 
   HWND displayWin =     
       CreateWindowExW(
@@ -320,15 +317,15 @@ void getUsername(HWND hwnd) {
 
 void setupMessaging(HWND hwnd) {
 
-  WNDCLASSEX messageClass = {0};
-  WNDCLASSEX textBoxClass = {0};
+  WNDCLASSW messageClass = {0};
+  WNDCLASSW textBoxClass = {0};
 
   messageClass .lpfnWndProc   = messageProc;
   messageClass .hInstance     = hInst;
   messageClass .hCursor       = LoadCursor(NULL, IDC_ARROW);
 	messageClass .lpszMenuName  = NULL;
-	messageClass .lpszClassName = "messageClass";
-  RegisterClassEx(&messageClass);
+	messageClass .lpszClassName = L"messageClass";
+  RegisterClassW(&messageClass);
 
 	textBoxClass.lpfnWndProc    = messageTextBoxProc;		
 	textBoxClass.hInstance      = hInst;
@@ -336,8 +333,8 @@ void setupMessaging(HWND hwnd) {
 	textBoxClass.hbrBackground  = (HBRUSH)(GRAY_BRUSH);
 	textBoxClass.lpszMenuName   = NULL;
   textBoxClass.style          = CS_HREDRAW | CS_VREDRAW;
-	textBoxClass.lpszClassName  = "textBoxClass";
-  RegisterClassEx(&textBoxClass);
+	textBoxClass.lpszClassName  = L"textBoxClass";
+  RegisterClassW(&textBoxClass);
   
 
 
