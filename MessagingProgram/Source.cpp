@@ -208,8 +208,8 @@ LRESULT CALLBACK messageProc(HWND hwnd, UINT Msg,
       switch (LOWORD(wParam)) {
         case MESSAGEBUTTON:
           GetDlgItemText(hwnd, MESSAGEDIALOG, messageBuffer, 24);
-          const char* tmp = string{username + string{": "} + messageBuffer + '\n'}.c_str();
-          //strncat(screenBuffer, tmp, strlen(tmp));
+          string tmp = string{username + string{": "} + messageBuffer + '\n' + '\0'}.c_str();
+          strncat_s(screenBuffer, tmp.c_str(), tmp.size());
           SetDlgItemText(GetWindow(hwnd,MESSAGEDIALOG), MESSAGEDIALOG, "");
           InvalidateRect(hwnd,&clientRect,true);
           break;
@@ -281,16 +281,14 @@ LRESULT CALLBACK usernameProc(HWND hwnd, UINT Msg,
 
 void getUsername(HWND hwnd) {
   
-  WNDCLASSW usernameWin = {0};
-
-  // SET UP WINDOW CLASS  
-	usernameWin.lpfnWndProc    = usernameProc;		
-	usernameWin.hInstance      = hInst;
-	usernameWin.hCursor        = LoadCursor(NULL, IDC_ARROW);
-	usernameWin.hbrBackground  = (HBRUSH)(GRAY_BRUSH);
-	usernameWin.lpszMenuName   = NULL;
+  WNDCLASSW usernameWin = {0};  
+  usernameWin.lpfnWndProc    = usernameProc;		
+  usernameWin.hInstance      = hInst;
+  usernameWin.hCursor        = LoadCursor(NULL, IDC_ARROW);
+  usernameWin.hbrBackground  = (HBRUSH)(GRAY_BRUSH);
+  usernameWin.lpszMenuName   = NULL;
   usernameWin.style          = CS_HREDRAW | CS_VREDRAW;
-	usernameWin.lpszClassName  = L"usernameClass";
+  usernameWin.lpszClassName  = L"usernameClass";
 
   RegisterClassW(&usernameWin);
 
@@ -323,17 +321,17 @@ void setupMessaging(HWND hwnd) {
   messageClass .lpfnWndProc   = messageProc;
   messageClass .hInstance     = hInst;
   messageClass .hCursor       = LoadCursor(NULL, IDC_ARROW);
-	messageClass .lpszMenuName  = NULL;
-	messageClass .lpszClassName = L"messageClass";
+  messageClass .lpszMenuName  = NULL;
+  messageClass .lpszClassName = L"messageClass";
   RegisterClassW(&messageClass);
 
-	textBoxClass.lpfnWndProc    = messageTextBoxProc;		
-	textBoxClass.hInstance      = hInst;
-	textBoxClass.hCursor        = LoadCursor(NULL, IDC_ARROW);
-	textBoxClass.hbrBackground  = (HBRUSH)(GRAY_BRUSH);
-	textBoxClass.lpszMenuName   = NULL;
+  textBoxClass.lpfnWndProc    = messageTextBoxProc;		
+  textBoxClass.hInstance      = hInst;
+  textBoxClass.hCursor        = LoadCursor(NULL, IDC_ARROW);
+  textBoxClass.hbrBackground  = (HBRUSH)(GRAY_BRUSH);
+  textBoxClass.lpszMenuName   = NULL;
   textBoxClass.style          = CS_HREDRAW | CS_VREDRAW;
-	textBoxClass.lpszClassName  = L"textBoxClass";
+  textBoxClass.lpszClassName  = L"textBoxClass";
   RegisterClassW(&textBoxClass);
   
 
