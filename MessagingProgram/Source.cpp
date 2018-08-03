@@ -5,9 +5,8 @@
 #include<Windowsx.h>
 #include<tchar.h>
 #include<conio.h>
-#include<io.h>
-#include<fcntl.h>
-#include<fstream>
+#include<stdio.h>
+#include<stdlib.h>
 
 
 #define clearScreen() system("cls")
@@ -29,7 +28,8 @@ enum {SPEAK   = 1,
       EXIT    = 4};
 
 
-
+static TCHAR  szWindowClass[] = _T("win32app");
+static TCHAR  szTitle[] = _T("FrankAdamMessaging");
 TCHAR         test[100] = "\ntesting\0";
 TCHAR         messageBuffer[256];
 TCHAR         screenBuffer[1024];
@@ -43,7 +43,6 @@ LRESULT CALLBACK usernameProc(HWND, UINT, WPARAM, LPARAM);
 
 
 
-void registerChildWindows();
 void messageMenu();
 void getUsername(HWND);
 void setupMessaging(HWND);
@@ -70,7 +69,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	wc.hCursor        = LoadCursor(NULL, IDC_ARROW);
 	wc.hbrBackground  = (HBRUSH)(COLOR_WINDOW + 1);
 	wc.lpszMenuName   = NULL;
-	wc.lpszClassName  = "win32app";
+	wc.lpszClassName  = szWindowClass;
 	wc.hIconSm        = LoadIcon(wc.hInstance, IDI_APPLICATION);
 
   hInst = hInstance;
@@ -85,10 +84,10 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		return 1;
 	}
 
-	HWND hwnd = CreateWindow(               
-		            "win32app",
-		            "FrankAdamMessaging",
-		            WS_VISIBLE | WS_CAPTION,
+	HWND hwnd = CreateWindow(
+		            szWindowClass,
+		            szTitle,
+		            WS_OVERLAPPEDWINDOW | WS_VSCROLL,
 		            CW_USEDEFAULT, CW_USEDEFAULT,
 		            500, 500,
 		            NULL,
@@ -98,7 +97,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     
 
 
-	if (!hwnd) {
+	/*if (!hwnd) {
 		MessageBox(
 			NULL,
 			_T("Call to CreateWindow failed!"),
@@ -106,10 +105,10 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 			SW_SHOW);
 
 		return 1;
-	}
+	} */
 
 
-  ShowWindow(hwnd, SW_SHOWDEFAULT);
+  //ShowWindow(hwnd, SW_SHOWDEFAULT);
   UpdateWindow(hwnd);
 
   MSG msg;
@@ -212,7 +211,7 @@ LRESULT CALLBACK messageProc(HWND hwnd, UINT Msg,
         case MESSAGEBUTTON:
           GetDlgItemText(hwnd, MESSAGEDIALOG, messageBuffer, 24);
           const char* tmp = string{username + string{": "} + messageBuffer + '\n'}.c_str();
-          strncat_s(screenBuffer, tmp, strlen(tmp));
+          strncat(screenBuffer, tmp, strlen(tmp));
           SetDlgItemText(GetWindow(hwnd,MESSAGEDIALOG), MESSAGEDIALOG, "");
           InvalidateRect(hwnd,&clientRect,true);
           break;
