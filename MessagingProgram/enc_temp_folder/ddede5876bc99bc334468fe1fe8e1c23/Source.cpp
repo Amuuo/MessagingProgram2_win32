@@ -331,22 +331,10 @@ LRESULT CALLBACK msgWinProc(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
 
 LRESULT CALLBACK msgDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
   
-  PAINTSTRUCT   ps;
-  static HDC    hdc;
-  static RECT   clientRect;
-  static HRGN   bgRgn;
-  static HBRUSH hBrush;
-  
   static char testChar;
   testMsg tMsg{hwnd,msg,wParam,lParam};
     
   switch (msg) {
-
-    case WM_CREATE:
-      hdc = GetDC(hwnd);
-      InvalidateRect(hwnd, NULL, false);
-      break;
-
 
     case WM_KEYDOWN:
       if(wParam == VK_RETURN){          
